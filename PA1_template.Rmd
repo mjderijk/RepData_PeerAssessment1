@@ -7,15 +7,49 @@ output:
 
 
 ## Loading and preprocessing the data
+The data is already located in the right location. First, let's load it into a data frame, and run `str` and `summary` on the data frame to get an idea of what's in it:
+```{r}
+allDF <- read.csv("activity.csv", header = TRUE)
+str(allDF)
+summary(allDF)
+head(allDF)
+# in case we need to modify the date field:
+# myData$Date <- as.Date(myData$Date, format = "%d/%m/%Y")
+```
+For the next section we are interested in daily totals, so let's summarise these and we'll take a look at the result by running `head`:
+```{r, message=F, warning=F }
+library("dplyr")
+```
+```{r}
+dailyTotals <- allDF %>%
+  group_by(date) %>%
+  summarise(daily = sum(steps))
 
-
-
+head(dailyTotals)
+```
 ## What is mean total number of steps taken per day?
-
-
+```{r}
+summary(dailyTotals$daily)
+hist(dailyTotals$daily, xlab = "Steps", breaks = 5)
+meanDaily <- mean(dailyTotals$daily, na.rm = TRUE)
+meanDaily
+abline(v = meanDaily, col = "blue", lwd = 2)
+```
 
 ## What is the average daily activity pattern?
-
+```{r}
+dailyMean <- allDF %>%
+        group_by(interval) %>%
+        summarise(average = mean(steps))
+head(dailyMean)
+with(dailyMean, {
+        plot(x = interval,
+             y = range(average, na.rm=TRUE),
+             type = "l"
+        )
+} )
+#             #xlab = "", ylab = "Global Active Power (kilowatts)"
+```
 
 
 ## Imputing missing values
