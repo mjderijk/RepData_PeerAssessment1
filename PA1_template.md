@@ -177,24 +177,12 @@ for(i in seq(from = 0, to = 2355, by = 5)) {
         imputedDF$steps[imputedDF$interval == i & is.na(imputedDF$steps)] <-
                 intervalDF$average[intervalDF$interval == i]
 }
-## the imputedDF was examined at draft stages:
-#head(imputedDF)
-#summary(imputedDF)
-#str(imputedDF)
 ```
 
-Now we can make a histogram of the total number of steps taken each day and calculate and report the *mean* and *median* total number of steps taken per day:
-
-Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+Now we can make a histogram of the total number of steps taken each day and calculate and report the *mean* and *median* total number of steps taken per day, using `summary`:
 
 
 ```r
-# imputedDailyTotals <- imputedDF %>%
-#   group_by(date) %>%
-#   summarise(daily = sum(steps))
-# 
-# head(imputedDailyTotals)
-
 with(imputedDailyTotals <- imputedDF %>%
        group_by(date) %>%
        summarise(dailyTotal = sum(steps)), {
@@ -216,29 +204,47 @@ with(imputedDailyTotals <- imputedDF %>%
 ##      41    9819   10770   10770   12810   21190
 ```
 
-```r
-# summary(imputedDailyTotals$daily)
-# hist(imputedDailyTotals$daily, xlab = "Steps", breaks = 10)
-# meanImputedDaily <- mean(imputedDailyTotals$daily, na.rm = TRUE)
-# meanImputedDaily
-# abline(v = meanImputedDaily, col = "blue", lwd = 2)
+Otherwise, the *mean* and *median* values can be shown (without rounding) by running `mean` and `median` directly:
 
-# imputedDailyMean <- imputedDF %>%
-#         group_by(interval) %>%
-#         summarise(average = mean(steps, na.rm = TRUE))
-# 
-# head(imputedDailyMean)
-# tail(imputedDailyMean)
-# 
-# with(imputedDailyMean, {
-#         plot(x = interval,
-#              y = average,
-#              type = "l",
-#              xlab = "Interval",
-#              ylab = "Steps"
-#         )
-# } )
-```
+1. mean: 1.0766189\times 10^{4}
+2. median: 1.0766189\times 10^{4}
 
+These values differ from the estimates from the first part of the assignment, which were:
+
+1. mean: 9354.2295082
+2. median: 10395
+
+The impact of imputing missing data on the estimates of the total daily number of steps using this strategy is that, on one hand, the bias towards high frequency of low numbered data (steps) is reduced, the variance of the data is reduced (evidenced by the median equalling the mean). This is consistent with the observation by Pigott (2001) that "replacing missing values with a single value changes the distribution of that variable by decreasing the variance that is likely present."
+
+Pigott, T. D. (2001). A review of methods for missing data. *Educational research and evaluation*, 7(4), 353-383.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Using the Imputed Dataframe (imputedDF), for this part the weekdays() function is used to create a new factor variable (daytype) in the dataset with two levels - "weekday" and "weekend", indicating whether a given date is a weekday or weekend day.
+
+A lattice panel plot is drawn containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+
+```r
+weekdaysDF <- imputedDF %>%
+        mutate(daytype = ifelse(weekdays(date) %in% c("Saturday","Sunday"), "weekend", "weekday")) %>%
+        mutate(daytype = as.factor(daytype))
+
+library(lattice)
+with(weekdaysDF <- imputedDF %>%
+        mutate(daytype = ifelse(weekdays(date) 
+                %in% c("Saturday","Sunday"), "weekend", "weekday")) %>%
+        mutate(daytype = as.factor(daytype)) %>%
+        group_by(daytype, interval) %>%
+        summarise(average = mean(steps)), {
+                xyplot(average ~ interval | daytype,
+                       type = "l",
+                       main="Average number of steps taken VS 5-minute intervals",
+                       xlab="Interval",
+                       ylab="Steps", 
+                       layout=c(1,2))
+        }
+)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
