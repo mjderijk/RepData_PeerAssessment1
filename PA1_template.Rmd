@@ -40,20 +40,33 @@ abline(v = meanDaily, col = "blue", lwd = 2)
 ```{r}
 dailyMean <- allDF %>%
         group_by(interval) %>%
-        summarise(average = mean(steps))
+        summarise(average = mean(steps, na.rm = TRUE))
+
 head(dailyMean)
+tail(dailyMean)
+
 with(dailyMean, {
         plot(x = interval,
-             y = range(average, na.rm=TRUE),
-             type = "l"
+             y = average,
+             type = "l",
+             xlab = "Interval",
+             ylab = "Steps"
         )
 } )
-#             #xlab = "", ylab = "Global Active Power (kilowatts)"
 ```
 
 
 ## Imputing missing values
-
+```{r}
+imputedDF <- allDF
+sum(is.na(imputedDF$steps))
+for(i in seq(from = 0, to = 2355, by = 5)) {
+        imputedDF$steps[is.na(imputedDF$steps) & imputedDF$interval == i] <- 0
+        #if(imputedDF[is.na(imputedDF$steps),]
+}
+i
+sum(is.na(imputedDF$steps))
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?

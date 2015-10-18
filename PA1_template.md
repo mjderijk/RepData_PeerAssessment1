@@ -104,20 +104,85 @@ abline(v = meanDaily, col = "blue", lwd = 2)
 ## What is the average daily activity pattern?
 
 ```r
-with(allDF, {
-        plot(interval, steps, type = "l")
+dailyMean <- allDF %>%
+        group_by(interval) %>%
+        summarise(average = mean(steps, na.rm = TRUE))
+
+head(dailyMean)
+```
+
+```
+## Source: local data frame [6 x 2]
+## 
+##   interval   average
+## 1        0 1.7169811
+## 2        5 0.3396226
+## 3       10 0.1320755
+## 4       15 0.1509434
+## 5       20 0.0754717
+## 6       25 2.0943396
+```
+
+```r
+tail(dailyMean)
+```
+
+```
+## Source: local data frame [6 x 2]
+## 
+##   interval   average
+## 1     2330 2.6037736
+## 2     2335 4.6981132
+## 3     2340 3.3018868
+## 4     2345 0.6415094
+## 5     2350 0.2264151
+## 6     2355 1.0754717
+```
+
+```r
+with(dailyMean, {
+        plot(x = interval,
+             y = average,
+             type = "l",
+             xlab = "Interval",
+             ylab = "Steps"
+        )
 } )
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
 
-```r
-#             #xlab = "", ylab = "Global Active Power (kilowatts)"
-```
-
 
 ## Imputing missing values
 
+```r
+imputedDF <- allDF
+sum(is.na(imputedDF$steps))
+```
+
+```
+## [1] 2304
+```
+
+```r
+for(i in seq(from = 0, to = 2355, by = 5)) {
+        imputedDF$steps[is.na(imputedDF$steps) & imputedDF$interval == i] <- 0
+        #if(imputedDF[is.na(imputedDF$steps),]
+}
+i
+```
+
+```
+## [1] 2355
+```
+
+```r
+sum(is.na(imputedDF$steps))
+```
+
+```
+## [1] 0
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
