@@ -151,7 +151,19 @@ with(intervalDF <- activityDF %>%
 ##   0.000   2.486  34.110  37.380  52.830 206.200
 ```
 
-The maximum number of steps across the 5-minute intervals is: 206.
+The interval where the maximum number of steps across the 5-minute intervals occurs is 835:
+
+
+```r
+filter(intervalDF, average == max(average))
+```
+
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval  average
+## 1      835 206.1698
+```
 
 ## Imputing missing values
 There are a number of days/intervals in the dataset where there are missing values (coded as NA).
@@ -197,7 +209,7 @@ with(imputedDailyTotals <- imputedDF %>%
 )
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-10-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
 
 ```
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -247,4 +259,4 @@ with(weekdaysDF <- imputedDF %>%
 )
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 

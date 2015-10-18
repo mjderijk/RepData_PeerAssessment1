@@ -85,7 +85,11 @@ with(intervalDF <- activityDF %>%
 )
 ```
 
-The maximum number of steps across the 5-minute intervals is: `r round(max(intervalDF$average))`.
+The interval where the maximum number of steps across the 5-minute intervals occurs is `r filter(intervalDF, average == max(average))$interval`:
+
+```{r}
+filter(intervalDF, average == max(average))
+```
 
 ## Imputing missing values
 There are a number of days/intervals in the dataset where there are missing values (coded as NA).
@@ -95,7 +99,7 @@ The number of NA's in the Activity Dataframe is:
 sum(is.na(activityDF$steps))
 ```
 
-The presence of missing days may introduce bias into some calculations or summaries of the data. To address this, a strategy for filling in all of the missing values in the dataset is taken for each 5-minute interval (that has an NA for 'steps') by replacing it with the corresponding average 5-minute value using intervalDF calculated previously. 
+The presence of missing days may introduce bias into some calculations or summaries of the data. To address this, a strategy for filling in all of the missing values in the dataset is taken for each 5-minute interval (that has an NA for 'steps') by replacing it with the corresponding average 5-minute value using intervalDF, calculated previously. 
 
 ```{r}
 imputedDF <- activityDF
