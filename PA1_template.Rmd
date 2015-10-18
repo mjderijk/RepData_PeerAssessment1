@@ -7,65 +7,127 @@ output:
 
 
 ## Loading and preprocessing the data
-The data is already located in the right location. First, let's load it into a data frame, and run `str` and `summary` on the data frame to get an idea of what's in it:
+The data is already located in the right location. So, let's load it into a data frame (activityDF), and run `str`, `summary` and `head` on the data frame to get a sense of what's in it:
 ```{r}
-allDF <- read.csv("activity.csv", header = TRUE)
-str(allDF)
-summary(allDF)
-head(allDF)
-# in case we need to modify the date field:
-# myData$Date <- as.Date(myData$Date, format = "%d/%m/%Y")
+activityDF <- read.csv("activity.csv", header = TRUE)
+str(activityDF)
+summary(activityDF)
+head(activityDF)
 ```
-For the next section we are interested in daily totals, so let's summarise these and we'll take a look at the result by running `head`:
+We can see that the date field is a factor class, so let's modify it to be a date class:
+```{r}
+# modify the date field from factor to date:
+activityDF$date <- as.Date(activityDF$date, format = "%Y-%m-%d")
+```
+We're now ready to continue.
+
+## What is mean total number of steps taken per day?
+To answer this question we are interested in taking the average (i.e., mean) of the daily total steps, so let's:
+
+1. group the Activity Dataframe by the date,
+2. calculate a daily total (sum), and
+3. look at the result by running `head` on the result.
+
+First, load the dplyr package (Note: messages and warnings off for this code section only):
 ```{r, message=F, warning=F }
 library("dplyr")
 ```
 ```{r}
-dailyTotals <- allDF %>%
-  group_by(date) %>%
-  summarise(daily = sum(steps))
-
-head(dailyTotals)
-```
-## What is mean total number of steps taken per day?
-```{r}
-summary(dailyTotals$daily)
-hist(dailyTotals$daily, xlab = "Steps", breaks = 5)
-meanDaily <- mean(dailyTotals$daily, na.rm = TRUE)
-meanDaily
-abline(v = meanDaily, col = "blue", lwd = 2)
+dailyTotals <- activityDF %>%
+        group_by(date) %>%
+        summarise(dailyTotal = sum(steps, na.rm = TRUE))
+head(dailyTotals, n = 10)
 ```
 
-## What is the average daily activity pattern?
+Now let's plot a histogram of the total number of steps taken each day:
 ```{r}
-dailyMean <- allDF %>%
-        group_by(interval) %>%
-        summarise(average = mean(steps, na.rm = TRUE))
-
-head(dailyMean)
-tail(dailyMean)
-
-with(dailyMean, {
-        plot(x = interval,
-             y = average,
-             type = "l",
-             xlab = "Interval",
-             ylab = "Steps"
+with(dailyTotals, {
+        hist(dailyTotal,
+             xlab = "Steps",
+             main = "Histogram of Daily Total Steps",
+             breaks = 10
         )
+        abline(v = mean(dailyTotal), col = "blue", lwd = 2)
+        abline(v = median(dailyTotal), col = "red", lwd = 2)
 } )
 ```
 
+The *mean* and *median* values for the number of steps taken each day can be determined using `summary`:
+```{r}
+summary(dailyTotals$dailyTotal)
+```
+
+Otherwise, the *mean* and *median* values can be shown (without rounding) by running `mean` and `median` directly:
+
+1. mean: `r mean(dailyTotals$dailyTotal)`
+2. median: `r median(dailyTotals$dailyTotal)`
+
+## What is the average daily activity pattern?
+To answer this question we are interested in averaging each interval across all days, so let's:
+
+1. group the Activity Dataframe by the intervals,
+2. calculate the average (mean) for each interval, and
+3. look at the result by running `summary` on the result.
+
+```{r}
+with(intervalDF <- activityDF %>%
+        group_by(interval) %>%
+        summarise(average = mean(steps, na.rm = TRUE)), {
+                plot(x = interval,
+                     y = average,
+                     type = "l",
+                     xlab = "Interval",
+                     ylab = "Steps",
+                     main = "Average number of steps taken VS 5-minute intervals"
+                )
+                summary(average)
+        }
+)
+```
+
+The maximum number of steps across the 5-minute intervals is: `r round(max(intervalDF$average))`.
 
 ## Imputing missing values
+There are a number of days/intervals in the dataset where there are missing values (coded as NA).
+
+The number of NA's in the Activity Dataframe is:
 ```{r}
-imputedDF <- allDF
-sum(is.na(imputedDF$steps))
+sum(is.na(activityDF$steps))
+```
+
+The presence of missing days may introduce bias into some calculations or summaries of the data. To address this, a strategy for filling in all of the missing values in the dataset is taken for each 5-minute interval (that has an NA for 'steps') by replacing it with the corresponding average 5-minute value using intervalDF calculated previously. 
+
+```{r}
+imputedDF <- activityDF
 for(i in seq(from = 0, to = 2355, by = 5)) {
-        imputedDF$steps[is.na(imputedDF$steps) & imputedDF$interval == i] <- 0
-        #if(imputedDF[is.na(imputedDF$steps),]
+        # for each 'steps' value (interval i) where the value is NA, 
+        # replace it with the corresponding average value for that interval
+        imputedDF$steps[imputedDF$interval == i & is.na(imputedDF$steps)] <-
+                intervalDF$average[intervalDF$interval == i]
 }
-i
-sum(is.na(imputedDF$steps))
+## the imputedDF was examined at draft stages:
+#head(imputedDF)
+#summary(imputedDF)
+#str(imputedDF)
+```
+
+Now we can make a histogram of the total number of steps taken each day and calculate and report the *mean* and *median* total number of steps taken per day:
+
+Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r}
+with(imputedDailyTotals <- imputedDF %>%
+       group_by(date) %>%
+       summarise(dailyTotal = sum(steps)), {
+               hist(dailyTotal,
+                    xlab = "Steps",
+                    main = "Histogram of Daily Total Steps (imputed)",
+                    breaks = 10)
+               abline(v = mean(dailyTotal), col = "blue", lwd = 2)
+               abline(v = median(dailyTotal), col = "red", lwd = 2)
+               summary(dailyTotal)
+       }
+)
 ```
 
 
